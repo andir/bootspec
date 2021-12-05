@@ -1,7 +1,9 @@
 {
   description = "bootloader-experimentation";
 
-  inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+  inputs.nixpkgs = {
+    url = "github:DeterminateSystems/nixpkgs/boot-spec-unstable";
+  };
 
   outputs =
     { self
