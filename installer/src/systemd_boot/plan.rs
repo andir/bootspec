@@ -362,13 +362,27 @@ fn run_update(bootctl: &Path, esp: &Path) -> Result<()> {
     debug!("running `{}` with args `{:?}`", &bootctl.display(), &args);
     let status = Command::new(&bootctl).args(args).status()?;
 
-    if !status.success() {
-        return Err(format!(
-            "failed to run `{}` with args `{:?}`",
-            &bootctl.display(),
-            &args
-        )
-        .into());
+    // The status code is either 0 on success or apparently 1 when no upgrade was required (with
+    // systemd v250). This is really add as it isn't entirely clear what status code actual errors
+    // will produce. FIXME: open a systemd bug regarding this if there is no documentation on it
+    match status.code() {
+        Some(code) if code != 0 && code != 1 => {
+            return Err(format!(
+                "failed to run `{}` with args `{:?}`. Terminated with code {}",
+                &bootctl.display(),
+                &args,
+                code
+            )
+            .into());
+        },
+        None =>
+            return Err(format!(
+                "failed to run `{}` with args `{:?}`",
+                &bootctl.display(),
+                &args
+            )
+            .into()),
+        _ => {}
     }
 
     Ok(())
